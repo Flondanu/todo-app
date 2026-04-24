@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TASKS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --accent: #c8f135;
+      --accent-dim: #9ab82a;
+      --text: #e8e8e8;
+      --muted: #555;
+      --danger: #ff4545;
+      --done: #333;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 3px solid var(--accent);
+      padding: 2rem 3rem 1.5rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 1;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      padding-bottom: 0.4rem;
+    }
+
+    .stat {
+      text-align: right;
+    }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Main layout */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    /* Add form */
+    .add-form {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2.5rem;
+      border: 2px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .add-form:focus-within {
+      border-color: var(--accent);
+    }
+
+    .add-input {
+      flex: 1;
+      background: var(--surface);
+      border: none;
+      outline: none;
+      padding: 1rem 1.2rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      caret-color: var(--accent);
+    }
+
+    .add-input::placeholder { color: var(--muted); }
+
+    .add-btn {
+      background: var(--accent);
+      border: none;
+      padding: 0 1.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      color: #0e0e0e;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .add-btn:hover { background: var(--accent-dim); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+
+    .filter-link {
+      padding: 0.4rem 1rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-decoration: none;
+      border-right: 1px solid var(--border);
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .filter-link:last-child { border-right: none; }
+    .filter-link:hover { color: var(--text); background: var(--surface); }
+    .filter-link.active { color: #0e0e0e; background: var(--accent); }
+
+    /* Todo list */
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--surface);
+      border-left: 3px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .todo-item:hover { background: #1c1c1c; border-left-color: var(--accent); }
+    .todo-item.done { border-left-color: var(--muted); opacity: 0.55; }
+
+    /* Toggle checkbox area */
+    .toggle-form { display: flex; }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .todo-item.done .checkbox {
+      border-color: var(--accent-dim);
+      background: var(--accent-dim);
+    }
+
+    .checkmark {
+      display: none;
+      width: 10px;
+      height: 10px;
+    }
+
+    .todo-item.done .checkmark { display: block; }
+
+    /* Task title */
+    .todo-title {
+      flex: 1;
+      padding: 1rem 0.5rem;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .todo-item.done .todo-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    /* Date */
+    .todo-date {
+      font-size: 0.65rem;
+      color: var(--muted);
+      padding: 0 1rem;
+      white-space: nowrap;
+    }
+
+    /* Delete */
+    .delete-form { display: flex; }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 1rem 1rem;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .delete-btn:hover { color: var(--danger); }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 5rem 2rem;
+      border: 1px dashed var(--border);
+    }
+
+    .empty-icon {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: var(--border);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .empty p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    /* Footer bar */
+    .list-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .clear-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 1.5rem; flex-direction: column; align-items: flex-start; }
+      .stats { gap: 1.5rem; }
+      main { padding: 1.5rem 1rem 3rem; }
+      .todo-date { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TASKS</div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">{{ active_count }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ completed_count }}</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Add task -->
+  <form class="add-form" action="/add" method="POST">
+    <input type="hidden" name="filter" value="{{ filter_by }}"/>
+    <input
+      class="add-input"
+      type="text"
+      name="title"
+      placeholder="Add a new task..."
+      autocomplete="off"
+      autofocus
+    />
+    <button class="add-btn" type="submit">+ ADD</button>
+  </form>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <a class="filter-link {% if filter_by == 'all' %}active{% endif %}" href="/?filter=all">All</a>
+    <a class="filter-link {% if filter_by == 'active' %}active{% endif %}" href="/?filter=active">Active</a>
+    <a class="filter-link {% if filter_by == 'completed' %}active{% endif %}" href="/?filter=completed">Completed</a>
+  </div>
+
+  <!-- List -->
+  <div class="todo-list">
+    {% if todos %}
+      {% for todo in todos %}
+      <div class="todo-item {% if todo.completed %}done{% endif %}">
+
+        <form class="toggle-form" action="/toggle/{{ todo.id }}?filter={{ filter_by }}" method="POST">
+          <button class="toggle-btn" type="submit" title="Toggle">
+            <div class="checkbox">
+              <svg class="checkmark" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="1.5,5 4,7.5 8.5,2" stroke="#0e0e0e" stroke-width="2" stroke-linecap="square"/>
+              </svg>
+            </div>
+          </button>
+        </form>
+
+        <span class="todo-title">{{ todo.title }}</span>
+
+        <span class="todo-date">{{ todo.created_at.strftime('%d %b') }}</span>
+
+        <form class="delete-form" action="/delete/{{ todo.id }}?filter={{ filter_by }}" method="POST">
+          <button class="delete-btn" type="submit" title="Delete">✕</button>
+        </form>
+
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">VOID</div>
+        <p>No tasks here. Get to work.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Footer -->
+  {% if total > 0 %}
+  <div class="list-footer">
+    <span>{{ active_count }} item{{ 's' if active_count != 1 }} left</span>
+    {% if completed_count > 0 %}
+    <form action="/clear-completed" method="POST">
+      <button class="clear-btn" type="submit">Clear completed ({{ completed_count }})</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</main>
+
+</body>
+</html>
